@@ -13,9 +13,6 @@ class Installments(Model):
 class Branches(Model):
     id = fields.IntField(pk=True)
     name = fields.TextField()
-    unique_id = fields.TextField()
-    delete_state = fields.IntField(default=0)  # 1 need to sync
-    patch_state = fields.IntField(default=0)  # 1 need to sync
 
 
 class Governorates(Model):
