@@ -56,10 +56,10 @@ class Del(BaseModel):
 class GetStudents(BaseModel):
     deleted: Optional[bool] = False
 
-class Authority(BaseModel):
-    state_id: int
-    state: str
 
+class Authority(BaseModel):
+    state_unique_id: str
+    unique_id: str
     class Config:
         orm_mode = True
 
@@ -68,6 +68,7 @@ class User(BaseModel):
     username: str
     password: str
     authority: List[Authority]
+    unique_id: str
 
     class Config:
         orm_mode = True

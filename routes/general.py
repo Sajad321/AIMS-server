@@ -36,11 +36,12 @@ async def get_users():
     users = await Users.all()
     result_list = []
     for user in users:
-        result_json = {"id": user.id, "username": user.username}
+        result_json = {"id": user.id, "username": user.username, "unique_id": user.unique_id}
         authority = []
         auth = await UserAuth.filter(user_id=user.id).prefetch_related('state').all()
         for au in auth:
-            auth_json = {"authority_id": au.id, "state": au.state.name, "state_id": au.state.id}
+            auth_json = {"authority_id": au.id, "state": au.state.name, "state_id": au.state.id,
+                         "auth_unique_id": au.unique_id, "delete_stat": au.delete_state}
             authority.append(auth_json)
         result_json['authority'] = authority
         result_list.append(result_json)
@@ -71,13 +72,14 @@ async def get_users():
 @general_router.post('/users')
 async def post_user(schema: User):
     async with in_transaction() as conn:
-        unique_id = str(uuid4())
-        password = hashlib.md5(schema.password.encode())
+        unique_id = schema.unique_id
+        password = schema.password
 
-        new = Users(username=schema.username, password=password.hexdigest(), unique_id=unique_id)
+        new = Users(username=schema.username, password=password, unique_id=unique_id)
         await new.save(using_db=conn)
         for state in schema.authority:
-            auth = UserAuth(user_id=new.id, state_id=state.state_id, unique_id=unique_id)
+            st = await States.filter(unique_id=state.state_unique_id).first()
+            auth = UserAuth(user_id=new.id, state_id=st.id, unique_id=state.unique_id)
             await auth.save(using_db=conn)
     return {
         "success": True
