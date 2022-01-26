@@ -74,7 +74,6 @@ async def post_user(schema: User):
     async with in_transaction() as conn:
         unique_id = schema.unique_id
         password = schema.password
-
         new = Users(username=schema.username, password=password, unique_id=unique_id)
         await new.save(using_db=conn)
         for state in schema.authority:
@@ -135,23 +134,19 @@ async def post_institute(schema: State):
 async def post_student_installment(schema: StudentInstallment):
     if schema.patch is True:
         await StudentInstallments.filter(unique_id=schema.unique_id).delete()
-    old_stu_installments = await StudentInstallments.filter(unique_id=schema.unique_id).first()
-    if old_stu_installments is not None:
-        student = await Students.filter(unique_id=schema.student_unique_id).first()
-        if student is not None:
-            for install in schema.install_unique_id:
-                old_install = await Installments.filter(unique_id=install).first()
-                async with in_transaction() as conn:
-                    if schema.patch is True:
+    student = await Students.filter(unique_id=schema.student_unique_id).first()
+    old_install = await Installments.filter(unique_id=schema.install_unique_id).first()
+    async with in_transaction() as conn:
+        if schema.patch is True:
 
-                        new = StudentInstallments(amount=schema.amount, date=schema.date, installment_id=old_install.id,
-                                                  invoice=schema.invoice, student_id=student.id,
-                                                  unique_id=schema.unique_id, patch_state=1)
-                    else:
-                        new = StudentInstallments(amount=schema.amount, date=schema.date, installment_id=old_install.id,
-                                                  invoice=schema.invoice, student_id=student.id,
-                                                  unique_id=schema.unique_id)
-                    await new.save(using_db=conn)
+            new = StudentInstallments(amount=schema.amount, date=schema.date, installment_id=old_install.id,
+                                      invoice=schema.invoice, student_id=student.id,
+                                      unique_id=schema.unique_id, patch_state=1)
+        else:
+            new = StudentInstallments(amount=schema.amount, date=schema.date, installment_id=old_install.id,
+                                      invoice=schema.invoice, student_id=student.id,
+                                      unique_id=schema.unique_id)
+        await new.save(using_db=conn)
     return {
         True
     }
@@ -162,30 +157,29 @@ async def post_student_installment(schema: StudentInstallment):
 async def post_student(schema: Student):
     if schema.patch is True:
         await Students.filter(unique_id=schema.unique_id).delete()
-    old_student = await Students.filter(unique_id=schema.unique_id).first()
     state_id = await States.filter(unique_id=schema.state_unique_id).first()
-    if old_student is not None:
-        async with in_transaction() as conn:
-            if schema.patch is True:
-                new = Students(name=schema.name, school=schema.school, branch_id=schema.branch_id,
-                               governorate_id=schema.governorate_id, institute_id=schema.institute_id,
-                               state_id=state_id,
-                               first_phone=schema.first_phone, second_phone=schema.second_phone, code=schema.code,
-                               telegram_user=schema.telegram_user, created_at=schema.created_at, note=schema.note,
-                               total_amount=schema.total_amount, poster_id=schema.poster,
-                               remaining_amount=schema.remaining_amount,
-                               unique_id=schema.unique_id, patch_state=1
-                               )
-            else:
-                new = Students(name=schema.name, school=schema.school, branch_id=schema.branch_id,
-                               governorate_id=schema.governorate_id, institute_id=schema.institute_id,
-                               state_id=state_id,
-                               first_phone=schema.first_phone, second_phone=schema.second_phone, code=schema.code,
-                               telegram_user=schema.telegram_user, created_at=schema.created_at, note=schema.note,
-                               total_amount=schema.total_amount, poster_id=schema.poster,
-                               remaining_amount=schema.remaining_amount,
-                               unique_id=schema.unique_id
-                               )
+    async with in_transaction() as conn:
+        if schema.patch is True:
+            new = Students(name=schema.name, school=schema.school, branch_id=schema.branch_id,
+                           governorate_id=schema.governorate_id, institute_id=schema.institute_id,
+                           state_id=state_id.id,
+                           first_phone=schema.first_phone, second_phone=schema.second_phone, code=schema.code,
+                           telegram_user=schema.telegram_user, created_at=schema.created_at, note=schema.note,
+                           total_amount=schema.total_amount, poster_id=schema.poster,
+                           remaining_amount=schema.remaining_amount,
+                           unique_id=schema.unique_id, patch_state=1
+                           )
+            await new.save(using_db=conn)
+        else:
+            new = Students(name=schema.name, school=schema.school, branch_id=schema.branch_id,
+                           governorate_id=schema.governorate_id, institute_id=schema.institute_id,
+                           state_id=state_id.id,
+                           first_phone=schema.first_phone, second_phone=schema.second_phone, code=schema.code,
+                           telegram_user=schema.telegram_user, created_at=schema.created_at, note=schema.note,
+                           total_amount=schema.total_amount, poster_id=schema.poster,
+                           remaining_amount=schema.remaining_amount,
+                           unique_id=schema.unique_id
+                           )
             await new.save(using_db=conn)
     return {
         True

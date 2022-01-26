@@ -19,7 +19,7 @@ class StudentInstallment(BaseModel):
     amount: Optional[int] = None
     invoice: Optional[int] = None
     unique_id: str
-    install_unique_id: List[str]
+    install_unique_id: str
     student_unique_id: str
     patch: Optional[bool] = False
 
@@ -60,6 +60,7 @@ class GetStudents(BaseModel):
 class Authority(BaseModel):
     state_unique_id: str
     unique_id: str
+
     class Config:
         orm_mode = True
 
