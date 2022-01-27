@@ -1,9 +1,8 @@
-import hashlib
-from uuid import uuid4
 from fastapi import APIRouter
 from tortoise.transactions import in_transaction
 from schemas.general import Installment, State, StudentInstallment, Student, Del, GetStudents, User
-from models.models import Installments, States, StudentInstallments, Students, Users, UserAuth
+from models.models import Installments, States, StudentInstallments, Students, Users, UserAuth, Branches, Governorates, \
+    Institutes, Posters
 
 general_router = APIRouter()
 
@@ -36,12 +35,14 @@ async def get_users():
     users = await Users.all()
     result_list = []
     for user in users:
-        result_json = {"id": user.id, "username": user.username, "unique_id": user.unique_id}
+        result_json = {"id": user.id, "username": user.username, "unique_id": user.unique_id,
+                       "delete_state": user.delete_state, "password": user.password, "patch_state": user.patch_state}
         authority = []
         auth = await UserAuth.filter(user_id=user.id).prefetch_related('state').all()
         for au in auth:
             auth_json = {"authority_id": au.id, "state": au.state.name, "state_id": au.state.id,
-                         "auth_unique_id": au.unique_id, "delete_stat": au.delete_state}
+                         "state_unique_id": au.state.unique_id,
+                         "auth_unique_id": au.unique_id, "delete_state": au.delete_state}
             authority.append(auth_json)
         result_json['authority'] = authority
         result_list.append(result_json)
@@ -206,28 +207,15 @@ async def del_student(schema: Del):
 
 # to get all students deleted or edited or not
 @general_router.get('/students')
-async def get_students(schema: GetStudents):
-    if not schema.deleted:
-        all_students = await Students.filter(delete_state=0).prefetch_related('state').all()
-        all_json = []
-        for stu in all_students:
-            student_json = {"name": stu.name, "school": stu.school, "branch_id": stu.branch,
-                            "governorate_id": stu.governorate, "first_phone": stu.first_phone,
-                            "second_phone": stu.second_phone,
-                            "institute_id": stu.institute, "code": stu.code, "telegram_user": stu.telegram_user,
-                            "created_at": stu.created_at, "note": stu.note, "total_amount": stu.total_amount,
-                            "poster_id":
-                                stu.poster, "remaining_amount": stu.remaining_amount, "unique_id": stu.unique_id,
-                            "patch_state":
-                                stu.patch_state, "state": {
-                    "name": stu.state.name, "unique_id": stu.state.unique_id}}
-            all_json.append(student_json)
-            return {"students": all_json}
-    elif schema.deleted:
-        all_students = await Students.filter(delete_state=1).all().values('unique_id')
-        return {
-            "students": all_students
-        }
+async def get_students():
+    all_students = await Students.filter().prefetch_related('state').all()
+    all_json = []
+    for stu in all_students:
+        student_json = stu.__dict__
+        all_json.append(student_json)
+    return {
+        "students": all_json
+    }
 
 
 # to get all or patched states
@@ -241,6 +229,42 @@ async def get_states():
 # to get all or patched student installment
 @general_router.get('/student_installment')
 async def get_states():
+    query = await StudentInstallments.all().prefetch_related('student', 'installment')
     return {
-        "students_installments": await StudentInstallments.all()
+        "students_installments": [n.__dict__ for n in query]
+    }
+
+
+@general_router.get('/branches')
+async def get_branches():
+    return {
+        "branches": await Branches.all()
+    }
+
+
+@general_router.get('/governorates')
+async def get_governorates():
+    return {
+        "governorates": await Governorates.all()
+    }
+
+
+@general_router.get('/installments')
+async def get_installments():
+    return {
+        "installments": await Installments.all()
+    }
+
+
+@general_router.get('/institutes')
+async def get_institutes():
+    return {
+        "institutes": await Institutes.all()
+    }
+
+
+@general_router.get('/posters')
+async def get_posters():
+    return {
+        "posters": await Posters.all()
     }
