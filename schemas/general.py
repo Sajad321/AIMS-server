@@ -70,6 +70,7 @@ class User(BaseModel):
     password: str
     authority: List[Authority]
     unique_id: str
+    name: Optional[str] = None
 
     class Config:
         orm_mode = True

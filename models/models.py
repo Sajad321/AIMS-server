@@ -41,6 +41,7 @@ class Users(Model):
     username = fields.TextField()
     password = fields.TextField()
     unique_id = fields.TextField()
+    name = fields.TextField(null=True)
     delete_state = fields.IntField(default=0)  # 1 need to sync
     patch_state = fields.IntField(default=0)  # 1 need to sync
 

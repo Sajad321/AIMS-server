@@ -35,7 +35,7 @@ async def get_users():
     users = await Users.all()
     result_list = []
     for user in users:
-        result_json = {"id": user.id, "username": user.username, "unique_id": user.unique_id,
+        result_json = {"id": user.id, "username": user.username, "unique_id": user.unique_id,"name": user.name,
                        "delete_state": user.delete_state, "password": user.password, "patch_state": user.patch_state}
         authority = []
         auth = await UserAuth.filter(user_id=user.id).prefetch_related('state').all()
@@ -75,7 +75,7 @@ async def post_user(schema: User):
     async with in_transaction() as conn:
         unique_id = schema.unique_id
         password = schema.password
-        new = Users(username=schema.username, password=password, unique_id=unique_id)
+        new = Users(username=schema.username, password=password, unique_id=unique_id, name=schema.name)
         await new.save(using_db=conn)
         for state in schema.authority:
             st = await States.filter(unique_id=state.state_unique_id).first()
