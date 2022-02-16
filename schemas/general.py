@@ -33,7 +33,8 @@ class Student(BaseModel):
     state_unique_id: str
     first_phone: Optional[str] = None
     second_phone: Optional[str] = None
-    code: int
+    code_1: Optional[int] = None
+    code_2: Optional[int] = None
     telegram_user: Optional[str] = None
     created_at: str
     note: Optional[str] = None
