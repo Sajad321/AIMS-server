@@ -36,7 +36,7 @@ class Student(BaseModel):
     code_1: Optional[int] = None
     code_2: Optional[int] = None
     telegram_user: Optional[str] = None
-    created_at: str
+    created_at: Optional[str] = None
     note: Optional[str] = None
     total_amount: Optional[float]
     poster: Optional[int]
