@@ -21,7 +21,7 @@ def create_app() -> FastAPI:
     )
     register_tortoise(
         app,
-        db_url='postgres://zjrjzsjqskajpx:8c61868cef47cf6f885ca90ac167023e0a06cb3537986834636eda039f28b6e3@ec2-3-212-143-188.compute-1.amazonaws.com:5432/dc1nmtqmk06hbn',
+        db_url='sqlite://db.sqlite3',
         modules={'models': ["models.models"]},
         generate_schemas=True,
         add_exception_handlers=True,
@@ -36,7 +36,7 @@ def register_views(app: FastAPI):
 
 TORTOISE_ORM = {
     "connections": {
-        "default": "postgres://zjrjzsjqskajpx:8c61868cef47cf6f885ca90ac167023e0a06cb3537986834636eda039f28b6e3@ec2-3-212-143-188.compute-1.amazonaws.com:5432/dc1nmtqmk06hbn"
+        "default": 'sqlite://db.sqlite3'
     },
     "apps": {
         "models": {

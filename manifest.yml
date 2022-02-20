@@ -1,0 +1,4 @@
+apps:
+- name: ims-alhashimy
+  random-route: true
+  memory: 128M
