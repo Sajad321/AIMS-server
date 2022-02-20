@@ -27,20 +27,20 @@ class StudentInstallment(BaseModel):
 class Student(BaseModel):
     name: str
     school: str
-    branch_id: int
-    governorate_id: str
-    institute_id: str
+    branch_id: Optional[str]
+    governorate_id: Optional[int]
+    institute_id: Optional[int]
     state_unique_id: str
     first_phone: Optional[str] = None
     second_phone: Optional[str] = None
     code_1: Optional[int] = None
     code_2: Optional[int] = None
     telegram_user: Optional[str] = None
-    created_at: str
+    created_at: Optional[str] = None
     note: Optional[str] = None
-    total_amount: float
-    poster: int
-    remaining_amount: float
+    total_amount: Optional[float]
+    poster: Optional[int]
+    remaining_amount: Optional[float]
     unique_id: str
     patch: Optional[bool] = False
 
