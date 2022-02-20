@@ -36,7 +36,7 @@ def register_views(app: FastAPI):
 
 TORTOISE_ORM = {
     "connections": {
-        "default": "sqlite://db.sqlite3"
+        "default": 'sqlite://db.sqlite3'
     },
     "apps": {
         "models": {

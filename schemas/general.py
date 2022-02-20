@@ -27,14 +27,14 @@ class StudentInstallment(BaseModel):
 class Student(BaseModel):
     name: str
     school: str
-    branch_id: Optional[str]
+    branch_id: Optional[int]
     governorate_id: Optional[int]
     institute_id: Optional[int]
     state_unique_id: str
     first_phone: Optional[str] = None
     second_phone: Optional[str] = None
-    code_1: Optional[int] = None
-    code_2: Optional[int] = None
+    code_1: Optional[str] = None
+    code_2: Optional[str] = None
     telegram_user: Optional[str] = None
     created_at: Optional[str] = None
     note: Optional[str] = None
