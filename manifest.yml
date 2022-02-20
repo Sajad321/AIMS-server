@@ -2,4 +2,4 @@
 applications:
 - name: IMSALHASHIMY
   random-route: true
-  memory: 128M
+  memory: 512M
