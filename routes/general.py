@@ -206,12 +206,21 @@ async def post_student(schema: Student):
 async def del_student(schema: Del):
     for unique_id in schema.unique_id_students:
         await Students.filter(unique_id=unique_id).update(delete_state=1)
+        stu = await Students.filter(unique_id=unique_id).first()
+        if stu is not None:
+            await StudentInstallments.filter(student_id=stu.id).update(delete_state=1)
     for unique_id in schema.unique_id_students_install:
         await StudentInstallments.filter(unique_id=unique_id).update(delete_state=1)
     for unique_id in schema.unique_id_states:
         await States.filter(unique_id=unique_id).update(delete_state=1)
+        st = await States.filter(unique_id=unique_id).first()
+        if st is not None:
+            await Students.filter(state_id=st.id).update(delete_state=1)
     for unique_id in schema.unique_id_installment:
         await Installments.filter(unique_id=unique_id).update(delete_state=1)
+        inst = await Installments.filter(unique_id=unique_id).first()
+        if inst is not None:
+            await StudentInstallments.filter(installment_id=inst.id).update(delete_state=1)
     for unique_id in schema.unique_id_users:
         await Users.filter(unique_id=unique_id).update(delete_state=1)
     return {
