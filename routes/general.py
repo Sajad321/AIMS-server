@@ -75,6 +75,18 @@ async def post_user(schema: User):
     async with in_transaction() as conn:
         unique_id = schema.unique_id
         password = schema.password
+        exist = await Users.filter(unique_id=unique_id).first()
+        if exist is not None:
+            await Users.filter(unique_id=unique_id).update(username=schema.username, password=password,
+                                                           unique_id=unique_id, name=schema.name, patch_state=0)
+            await UserAuth.filter(user_id=exist.id).delete()
+            for state in schema.authority:
+                st = await States.filter(unique_id=state.state_unique_id).first()
+                auth = UserAuth(user_id=exist.id, state_id=st.id, unique_id=state.unique_id)
+                await auth.save(using_db=conn)
+            return {
+                "success": True
+            }
         new = Users(username=schema.username, password=password, unique_id=unique_id, name=schema.name)
         await new.save(using_db=conn)
         for state in schema.authority:
