@@ -3,3 +3,5 @@ venv
 migrations
 aerich.ini
 IMS
+v
+__pycache__
