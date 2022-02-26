@@ -3,6 +3,7 @@ from tortoise.transactions import in_transaction
 from schemas.general import Installment, State, StudentInstallment, Student, Del, GetStudents, User
 from models.models import Installments, States, StudentInstallments, Students, Users, UserAuth, Branches, Governorates, \
     Institutes, Posters
+from fastapi.middleware.gzip import GZipMiddleware
 
 general_router = APIRouter()
 
@@ -35,7 +36,7 @@ async def get_users():
     users = await Users.all()
     result_list = []
     for user in users:
-        result_json = {"id": user.id, "username": user.username, "unique_id": user.unique_id,"name": user.name,
+        result_json = {"id": user.id, "username": user.username, "unique_id": user.unique_id, "name": user.name,
                        "delete_state": user.delete_state, "password": user.password, "patch_state": user.patch_state}
         authority = []
         auth = await UserAuth.filter(user_id=user.id).prefetch_related('state').all()
@@ -228,17 +229,14 @@ async def del_student(schema: Del):
     }
 
 
-# to get all students deleted or edited or not
-@general_router.get('/students')
-async def get_students():
-    all_students = await Students.filter().prefetch_related('state').all()
-    all_json = []
-    for stu in all_students:
-        student_json = stu.__dict__
-        all_json.append(student_json)
+@general_router.get('/students_unique')
+async def student_unique():
+    all_students = await Students.filter().all().values('unique_id')
     return {
-        "students": all_json
+        "students": all_students
     }
+
+
 
 
 # to get all or patched states
@@ -249,13 +247,6 @@ async def get_states():
     }
 
 
-# to get all or patched student installment
-@general_router.get('/student_installment')
-async def get_states():
-    query = await StudentInstallments.all().prefetch_related('student', 'installment')
-    return {
-        "students_installments": [n.__dict__ for n in query]
-    }
 
 
 @general_router.get('/branches')
