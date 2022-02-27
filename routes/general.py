@@ -79,7 +79,7 @@ async def post_user(schema: User):
         exist = await Users.filter(unique_id=unique_id).first()
         if exist:
             await Users.filter(unique_id=unique_id).update(username=schema.username, password=password,
-                                                           unique_id=unique_id, name=schema.name, patch_state=0)
+                                                           unique_id=unique_id, name=schema.name, patch_state=1)
             await UserAuth.filter(user_id=exist.id).delete()
             for state in schema.authority:
                 st = await States.filter(unique_id=state.state_unique_id).first()
