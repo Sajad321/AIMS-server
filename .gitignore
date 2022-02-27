@@ -5,3 +5,4 @@ aerich.ini
 IMS
 v
 __pycache__
+db.sqlite3

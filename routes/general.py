@@ -77,7 +77,7 @@ async def post_user(schema: User):
         unique_id = schema.unique_id
         password = schema.password
         exist = await Users.filter(unique_id=unique_id).first()
-        if exist is not None:
+        if exist:
             await Users.filter(unique_id=unique_id).update(username=schema.username, password=password,
                                                            unique_id=unique_id, name=schema.name, patch_state=0)
             await UserAuth.filter(user_id=exist.id).delete()
@@ -212,19 +212,21 @@ async def del_student(schema: Del):
     for unique_id in schema.unique_id_students:
         await Students.filter(unique_id=unique_id).update(delete_state=1)
         stu = await Students.filter(unique_id=unique_id).first()
-        if stu is not None:
+        if stu:
             await StudentInstallments.filter(student_id=stu.id).update(delete_state=1)
     for unique_id in schema.unique_id_students_install:
         await StudentInstallments.filter(unique_id=unique_id).update(delete_state=1)
     for unique_id in schema.unique_id_states:
         await States.filter(unique_id=unique_id).update(delete_state=1)
         st = await States.filter(unique_id=unique_id).first()
-        if st is not None:
+        if st:
             await Students.filter(state_id=st.id).update(delete_state=1)
+            for stud in await Students.filter(state_id=st.id).all():
+                await StudentInstallments.filter(student_id=stud.id).update(delete_state=1)
     for unique_id in schema.unique_id_installment:
         await Installments.filter(unique_id=unique_id).update(delete_state=1)
         inst = await Installments.filter(unique_id=unique_id).first()
-        if inst is not None:
+        if inst:
             await StudentInstallments.filter(installment_id=inst.id).update(delete_state=1)
     for unique_id in schema.unique_id_users:
         await Users.filter(unique_id=unique_id).update(delete_state=1)
