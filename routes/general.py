@@ -220,6 +220,7 @@ async def del_student(schema: Del):
         await States.filter(unique_id=unique_id).update(delete_state=1)
         st = await States.filter(unique_id=unique_id).first()
         if st:
+            await UserAuth.filter(state_id=st.id).update(delete_state=1)
             await Students.filter(state_id=st.id).update(delete_state=1)
             for stud in await Students.filter(state_id=st.id).all():
                 await StudentInstallments.filter(student_id=stud.id).update(delete_state=1)
