@@ -169,22 +169,26 @@ async def post_student_installment(schema: StudentInstallment):
 # receive new student
 @general_router.post('/student')
 async def post_student(schema: Student):
-    if schema.patch is True:
-        await Students.filter(unique_id=schema.unique_id).delete()
+    # if schema.patch is True:
+    #     await Students.filter(unique_id=schema.unique_id).delete()
     state_id = await States.filter(unique_id=schema.state_unique_id).first()
     async with in_transaction() as conn:
         if schema.patch is True:
-            new = Students(name=schema.name, school=schema.school, branch_id=schema.branch_id,
-                           governorate_id=schema.governorate_id, institute_id=schema.institute_id,
-                           state_id=state_id.id,
-                           first_phone=schema.first_phone, second_phone=schema.second_phone, code_1=schema.code_1,
-                           code_2=schema.code_2,
-                           telegram_user=schema.telegram_user, created_at=schema.created_at, note=schema.note,
-                           total_amount=schema.total_amount, poster_id=schema.poster,
-                           remaining_amount=schema.remaining_amount,
-                           unique_id=schema.unique_id, patch_state=1
-                           )
-            await new.save(using_db=conn)
+            await Students.filter(unique_id=schema.unique_id).update(name=schema.name, school=schema.school,
+                                                                     branch_id=schema.branch_id,
+                                                                     governorate_id=schema.governorate_id,
+                                                                     institute_id=schema.institute_id,
+                                                                     state_id=state_id.id,
+                                                                     first_phone=schema.first_phone,
+                                                                     second_phone=schema.second_phone,
+                                                                     code_1=schema.code_1,
+                                                                     code_2=schema.code_2,
+                                                                     telegram_user=schema.telegram_user,
+                                                                     created_at=schema.created_at, note=schema.note,
+                                                                     total_amount=schema.total_amount,
+                                                                     poster_id=schema.poster,
+                                                                     remaining_amount=schema.remaining_amount,
+                                                                     patch_state=1)
         else:
             new = Students(name=schema.name, school=schema.school, branch_id=schema.branch_id,
                            governorate_id=schema.governorate_id, institute_id=schema.institute_id,
@@ -237,16 +241,12 @@ async def student_unique():
     }
 
 
-
-
 # to get all or patched states
 @general_router.get('/states')
 async def get_states():
     return {
         "states": await States.all()
     }
-
-
 
 
 @general_router.get('/branches')
