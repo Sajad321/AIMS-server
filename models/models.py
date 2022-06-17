@@ -5,6 +5,16 @@ from tortoise import fields
 class Installments(Model):
     id = fields.IntField(pk=True)
     name = fields.TextField()
+    date = fields.DateField()
+    unique_id = fields.TextField()
+    delete_state = fields.IntField(default=0)  # 1 need to sync
+    patch_state = fields.IntField(default=0)  # 1 need to sync
+
+
+class Attendance(Model):
+    id = fields.IntField(pk=True)
+    date = fields.DateField()
+    institute = fields.ForeignKeyField('models.Institutes', null=True)
     unique_id = fields.TextField()
     delete_state = fields.IntField(default=0)  # 1 need to sync
     patch_state = fields.IntField(default=0)  # 1 need to sync
@@ -42,6 +52,7 @@ class Users(Model):
     password = fields.TextField()
     unique_id = fields.TextField()
     name = fields.TextField(null=True)
+    super = fields.IntField(default=0, null=True)
     delete_state = fields.IntField(default=0)  # 1 need to sync
     patch_state = fields.IntField(default=0)  # 1 need to sync
 
@@ -61,6 +72,8 @@ class UserAuth(Model):
 class Students(Model):
     id = fields.IntField(pk=True)
     name = fields.TextField()
+    photo = fields.TextField(null=True)
+    qr = fields.TextField(null=True)
     school = fields.TextField(null=True)
     branch = fields.ForeignKeyField("models.Branches", null=True)
     governorate = fields.ForeignKeyField("models.Governorates", null=True)
@@ -76,6 +89,8 @@ class Students(Model):
     total_amount = fields.FloatField(null=True)
     poster = fields.ForeignKeyField("models.Posters", null=True)
     remaining_amount = fields.FloatField(null=True)
+    dob = fields.TextField(null=True)
+    banned = fields.IntField(default=0)
     unique_id = fields.TextField()
     delete_state = fields.IntField(default=0)  # 1 need to sync
     patch_state = fields.IntField(default=0)  # 1 need to sync
@@ -87,6 +102,7 @@ class StudentInstallments(Model):
     date = fields.DateField(null=True)
     amount = fields.IntField(null=True)
     invoice = fields.IntField(null=True)
+    received = fields.IntField(null=True)
     student = fields.ForeignKeyField("models.Students", null=True)
     unique_id = fields.TextField()
     delete_state = fields.IntField(default=0)  # 1 need to sync
@@ -94,6 +110,19 @@ class StudentInstallments(Model):
 
     class Meta:
         table = "student_installments"
+
+
+class StudentAttendance(Model):
+    id = fields.IntField(pk=True)
+    attendance = fields.ForeignKeyField("models.Attendance", null=True)
+    attended = fields.IntField(null=True)
+    student = fields.ForeignKeyField("models.Students", null=True)
+    unique_id = fields.TextField()
+    delete_state = fields.IntField(default=0)  # 1 need to sync
+    patch_state = fields.IntField(default=0)  # 1 need to sync
+
+    class Meta:
+        table = "student_attendance"
 
 
 class States(Model):

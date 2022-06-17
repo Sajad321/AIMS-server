@@ -1,9 +1,14 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, UploadFile, File
+
+from starlette.responses import FileResponse
+from typing import Optional, List
 from tortoise.transactions import in_transaction
 from schemas.general import Installment, State, StudentInstallment, Student, Del, GetStudents, User
 from models.models import Installments, States, StudentInstallments, Students, Users, UserAuth, Branches, Governorates, \
     Institutes, Posters
 from fastapi.middleware.gzip import GZipMiddleware
+import shutil
+import aiofiles
 
 general_router = APIRouter()
 
@@ -36,7 +41,7 @@ async def get_users():
     users = await Users.all()
     result_list = []
     for user in users:
-        result_json = {"id": user.id, "username": user.username, "unique_id": user.unique_id, "name": user.name,
+        result_json = {"id": user.id, "username": user.username, "unique_id": user.unique_id, "name": user.name, "super": user.super,
                        "delete_state": user.delete_state, "password": user.password, "patch_state": user.patch_state}
         authority = []
         auth = await UserAuth.filter(user_id=user.id).prefetch_related('state').all()
@@ -78,21 +83,24 @@ async def post_user(schema: User):
         password = schema.password
         exist = await Users.filter(unique_id=unique_id).first()
         if exist:
-            await Users.filter(unique_id=unique_id).update(username=schema.username, password=password,
+            await Users.filter(unique_id=unique_id).update(username=schema.username, password=password, super=schema.super,
                                                            unique_id=unique_id, name=schema.name, patch_state=1)
             await UserAuth.filter(user_id=exist.id).delete()
             for state in schema.authority:
                 st = await States.filter(unique_id=state.state_unique_id).first()
-                auth = UserAuth(user_id=exist.id, state_id=st.id, unique_id=state.unique_id)
+                auth = UserAuth(user_id=exist.id, state_id=st.id,
+                                unique_id=state.unique_id)
                 await auth.save(using_db=conn)
             return {
                 "success": True
             }
-        new = Users(username=schema.username, password=password, unique_id=unique_id, name=schema.name)
+        new = Users(username=schema.username, password=password, super=schema.super,
+                    unique_id=unique_id, name=schema.name)
         await new.save(using_db=conn)
         for state in schema.authority:
             st = await States.filter(unique_id=state.state_unique_id).first()
-            auth = UserAuth(user_id=new.id, state_id=st.id, unique_id=state.unique_id)
+            auth = UserAuth(user_id=new.id, state_id=st.id,
+                            unique_id=state.unique_id)
             await auth.save(using_db=conn)
     return {
         "success": True
@@ -112,9 +120,11 @@ async def add_installments(schema: Installment):
             }
     async with in_transaction() as conn:
         if schema.patch is True:
-            new = Installments(name=schema.name, unique_id=schema.unique_id, patch_state=1)
+            new = Installments(
+                name=schema.name, date=schema.date, unique_id=schema.unique_id, patch_state=1)
         else:
-            new = Installments(name=schema.name, unique_id=schema.unique_id)
+            new = Installments(
+                name=schema.name, date=schema.date, unique_id=schema.unique_id)
         await new.save(using_db=conn)
     return {
         True
@@ -123,7 +133,7 @@ async def add_installments(schema: Installment):
 
 # receive new State 'POST' or edit
 @general_router.post('/state')
-async def post_institute(schema: State):
+async def post_state(schema: State):
     if schema.patch is True:
         await States.filter(unique_id=schema.unique_id).delete()
     stu_states = await States.filter(unique_id=schema.unique_id).all()
@@ -134,7 +144,8 @@ async def post_institute(schema: State):
             }
     async with in_transaction() as conn:
         if schema.patch is True:
-            new = States(name=schema.name, unique_id=schema.unique_id, patch_state=1)
+            new = States(name=schema.name,
+                         unique_id=schema.unique_id, patch_state=1)
         else:
             new = States(name=schema.name, unique_id=schema.unique_id)
         await new.save(using_db=conn)
@@ -154,11 +165,11 @@ async def post_student_installment(schema: StudentInstallment):
         if schema.patch is True:
 
             new = StudentInstallments(amount=schema.amount, date=schema.date, installment_id=old_install.id,
-                                      invoice=schema.invoice, student_id=student.id,
+                                      invoice=schema.invoice, student_id=student.id, received=schema.received,
                                       unique_id=schema.unique_id, patch_state=1)
         else:
             new = StudentInstallments(amount=schema.amount, date=schema.date, installment_id=old_install.id,
-                                      invoice=schema.invoice, student_id=student.id,
+                                      invoice=schema.invoice, student_id=student.id, received=schema.received,
                                       unique_id=schema.unique_id)
         await new.save(using_db=conn)
     return {
@@ -188,6 +199,10 @@ async def post_student(schema: Student):
                                                                      total_amount=schema.total_amount,
                                                                      poster_id=schema.poster,
                                                                      remaining_amount=schema.remaining_amount,
+                                                                     qr=schema.qr,
+                                                                     photo=schema.photo,
+                                                                     dob=schema.dob,
+                                                                     banned=schema.banned,
                                                                      patch_state=1)
         else:
             new = Students(name=schema.name, school=schema.school, branch_id=schema.branch_id,
@@ -198,6 +213,10 @@ async def post_student(schema: Student):
                            telegram_user=schema.telegram_user, created_at=schema.created_at, note=schema.note,
                            total_amount=schema.total_amount, poster_id=schema.poster,
                            remaining_amount=schema.remaining_amount,
+                           qr=schema.qr,
+                           photo=schema.photo,
+                           dob=schema.dob,
+                           banned=schema.banned,
                            unique_id=schema.unique_id
                            )
             await new.save(using_db=conn)
@@ -285,3 +304,45 @@ async def get_posters():
     return {
         "posters": await Posters.all()
     }
+
+
+# receive zip
+@general_router.post('/qr-images')
+async def post_qr_images(files: List[UploadFile] = File(None)):
+    print(files)
+    async with aiofiles.open("qr.zip", 'wb') as out_file:
+        content = await files[0].read()  # async read
+        await out_file.write(content)  # async write
+    async with aiofiles.open("images.zip", 'wb') as out_file:
+        content = await files[1].read()  # async read
+        await out_file.write(content)  # async write
+    async with aiofiles.open("users_finger.pk", 'wb') as out_file:
+        content = await files[2].read()  # async read
+        await out_file.write(content)  # async write
+    return {
+        True
+    }
+
+
+@general_router.get('/qr')
+async def get_qr():
+    """
+    GET qr zip
+    """
+    return FileResponse("qr.zip")
+
+
+@general_router.get('/images')
+async def get_images():
+    """
+    GET images zip
+    """
+    return FileResponse("images.zip")
+
+
+@general_router.get('/fingerprints')
+async def get_fingerprints():
+    """
+    GET fingerprints pickle
+    """
+    return FileResponse("users_finger.pk")
