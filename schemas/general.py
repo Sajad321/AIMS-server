@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 from typing import Optional, List
+from datetime import date
 
 
 class Installment(BaseModel):
@@ -36,10 +37,9 @@ class StudentAttendanceSchema(BaseModel):
 
 
 class AttendanceSchema(BaseModel):
-    date: Optional[str] = None
     unique_id: str
-    attendance_unique_id: str
-    student_unique_id: str
+    institute_id: Optional[int]
+    date: Optional[str] = None
     patch: Optional[bool] = False
 
 

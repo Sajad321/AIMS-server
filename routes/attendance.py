@@ -9,6 +9,7 @@ attendance_router = APIRouter()
 # attendance new adding 'POST' or edit
 @attendance_router.post('/attendance')
 async def add_attendance(schema: AttendanceSchema):
+    print(schema)
     if schema.patch is True:
         await Attendance.filter(unique_id=schema.unique_id).delete()
     stu_attendance = await Attendance.filter(unique_id=schema.unique_id).all()
@@ -20,9 +21,10 @@ async def add_attendance(schema: AttendanceSchema):
     async with in_transaction() as conn:
         if schema.patch is True:
             new = Attendance(
-                name=schema.name, unique_id=schema.unique_id, patch_state=1)
+                date=schema.date, unique_id=schema.unique_id, institute_id=schema.institute_id, patch_state=1)
         else:
-            new = Attendance(name=schema.name, unique_id=schema.unique_id)
+            new = Attendance(
+                date=schema.date, institute_id=schema.institute_id, unique_id=schema.unique_id)
         await new.save(using_db=conn)
     return {
         True

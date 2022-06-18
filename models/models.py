@@ -117,6 +117,7 @@ class StudentAttendance(Model):
     attendance = fields.ForeignKeyField("models.Attendance", null=True)
     attended = fields.IntField(null=True)
     student = fields.ForeignKeyField("models.Students", null=True)
+    time = fields.TextField(null=True)
     unique_id = fields.TextField()
     delete_state = fields.IntField(default=0)  # 1 need to sync
     patch_state = fields.IntField(default=0)  # 1 need to sync
