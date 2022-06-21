@@ -229,12 +229,14 @@ async def post_student(schema: Student):
 @general_router.post('/del')
 async def del_student(schema: Del):
     for unique_id in schema.unique_id_students:
-        await Students.filter(unique_id=unique_id).update(delete_state=1)
-        stu = await Students.filter(unique_id=unique_id).first()
-        if stu:
-            await StudentInstallments.filter(student_id=stu.id).update(delete_state=1)
+        if not Students.filter(unique_id=unique_id).first():
+            await Students.filter(unique_id=unique_id).update(delete_state=1)
+            stu = await Students.filter(unique_id=unique_id).first()
+            if stu:
+                await StudentInstallments.filter(student_id=stu.id).update(delete_state=1)
     for unique_id in schema.unique_id_students_install:
-        await StudentInstallments.filter(unique_id=unique_id).update(delete_state=1)
+        if not StudentInstallments.filter(unique_id=unique_id).first():
+            await StudentInstallments.filter(unique_id=unique_id).update(delete_state=1)
     for unique_id in schema.unique_id_states:
         await States.filter(unique_id=unique_id).update(delete_state=1)
         st = await States.filter(unique_id=unique_id).first()
@@ -249,7 +251,8 @@ async def del_student(schema: Del):
         if inst:
             await StudentInstallments.filter(installment_id=inst.id).update(delete_state=1)
     for unique_id in schema.unique_id_users:
-        await Users.filter(unique_id=unique_id).update(delete_state=1)
+        if not Users.filter(unique_id=unique_id).first():
+            await Users.filter(unique_id=unique_id).update(delete_state=1)
     return {
         True
     }

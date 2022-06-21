@@ -90,7 +90,7 @@ class Students(Model):
     poster = fields.ForeignKeyField("models.Posters", null=True)
     remaining_amount = fields.FloatField(null=True)
     dob = fields.TextField(null=True)
-    banned = fields.IntField(default=0)
+    banned = fields.IntField(null=True, default=0)
     unique_id = fields.TextField()
     delete_state = fields.IntField(default=0)  # 1 need to sync
     patch_state = fields.IntField(default=0)  # 1 need to sync
